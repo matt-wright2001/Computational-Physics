@@ -4,7 +4,7 @@
 #
 from math import sqrt
 # the function to integrate
-def f(x):
+def funct(x):
     return sqrt(x)
 # trapezoid rule integration
 # n : number of integration points
@@ -18,9 +18,9 @@ def trap(n, min, max):
     # sum points inside interval
     for i in range(1, n - 1):
         x = min + dx * i
-        sum += f(x)
+        sum += funct(x)
     # add endpoints
-    sum += (f(min) + f(max))/2
+    sum += (funct(min) + funct(max))/2
     sum *= dx
     return sum
 # main program
