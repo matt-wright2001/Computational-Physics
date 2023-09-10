@@ -19,8 +19,8 @@ def trap(n, min, max):
     for i in range(1, n - 1):
         x = min + dx * i
         sum += funct(x)
+
     # add endpoints
-    sum += (funct(min) + funct(max))/2
     sum *= dx
     return sum
 # main program
@@ -33,13 +33,15 @@ def trapIntMain():
     b = 2.0
     exact = 2.0/3.0*(2**(1.5) - 1.0)
 
-    for i in range(3,10000,2):
-        r = trap(i, a, b)
-        r = abs(r - exact)
-        print('{:6d} {:.12e}'.format(i,r))
+    with open('trapTest.dat', 'w') as f:
+        for i in range(3, 10000, 2):
+            trapError = abs(trap(i, a, b) - exact)
+            f.write('{:6d} {:.12e}\n'.format(i,trapError))
 
-    # for larger N, skip some values to save time
-    for i in range(1001,3000000,10000):
-        r = trap(i, a, b)
-        r = abs(r - exact)
-        print('{:6d} {:.12e}'.format(i,r))
+        # for larger N, skip some values to save time
+        for i in range(1001, 10**7, 10000):
+
+            trapError = abs(trap(i, a, b) - exact)
+            f.write('{:6d} {:.12e}\n'.format(i,trapError))
+
+trapIntMain()
