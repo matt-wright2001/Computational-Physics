@@ -37,10 +37,24 @@ def trapIntMain():
         for i in range(3, 10000, 2):
             trapError = abs(trap(i, a, b) - exact)
             f.write('{:6d} {:.12e}\n'.format(i,trapError))
-
+        print("breakpoint")
 
         # for larger N, skip some values to save time
-        for i in range(10001, 10 ** 8, 10 ** 7):
+        for i in range(10001, 10 ** 8, 5 * 10 ** 7):
+            trapError = abs(trap(i, a, b) - exact)
+            print(i, trapError)
+            f.write('{:6d} {:.12e}\n'.format(i,trapError))
+        print("2nd breakpoint")
+
+        # for larger N, skip some values to save time
+        for i in range((10 ** 8) + 1, 10 ** 10, 5 * 10 ** 9):
+            trapError = abs(trap(i, a, b) - exact)
+            print(i, trapError)
+            f.write('{:6d} {:.12e}\n'.format(i,trapError))
+        print("Final breakpoint")
+
+        # for larger N, skip some values to save time
+        for i in range((10 ** 12) + 1, 10 ** 14, 5 * 10 ** 13):
             trapError = abs(trap(i, a, b) - exact)
             print(i, trapError)
             f.write('{:6d} {:.12e}\n'.format(i,trapError))
