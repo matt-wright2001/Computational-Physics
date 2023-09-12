@@ -53,10 +53,4 @@ def trapIntMain():
             f.write('{:6d} {:.12e}\n'.format(i,trapError))
         print("Final breakpoint")
 
-        # for larger N, skip some values to save time
-        for i in range((10 ** 12) + 1, 10 ** 14, 5 * 10 ** 13):
-            trapError = abs(trap(i, a, b) - exact)
-            print(i, trapError)
-            f.write('{:6d} {:.12e}\n'.format(i,trapError))
-
 trapIntMain()
