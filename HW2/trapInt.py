@@ -53,4 +53,4 @@ def trapIntMain():
             f.write('{:6d} {:.12e}\n'.format(i,trapError))
         print("Final breakpoint")
 
-trapIntMain()
+#trapIntMain()
