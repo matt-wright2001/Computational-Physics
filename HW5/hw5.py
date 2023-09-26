@@ -1,3 +1,5 @@
+from numpy import empty
+
 # Runge-Kutta-Fehlberb Method
 def RKF(f, t, h, y, tol):
     a = [ 0.25, 0.375, 12/13, 1.0, 0.5]
