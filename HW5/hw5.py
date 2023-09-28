@@ -1,7 +1,8 @@
 from numpy import empty
 
-# Runge-Kutta-Fehlberb Method
+# Runge-Kutta-Fehlberg Method
 def RKF(f, t, h, y, tol):
+    HMIN = 1e-5
     a = [ 0.25, 0.375, 12/13, 1.0, 0.5]
     bk1 = [0.25]
     bk2 = [3/32, 9/32]
