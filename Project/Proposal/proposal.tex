@@ -1,0 +1,44 @@
+\documentclass[aps,prl]{revtex4-2}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage[shortlabels]{enumitem}
+\usepackage{siunitx}
+
+\newcommand{\icet}{Institute for Clean Energy Technology, Mississippi State University, Mississippi State, MS 39762, USA}
+\newcommand{\physMSU}{Dept. of Physics and Astronomy, Mississippi State University, Mississippi State, MS 39762, USA}
+
+\begin{document}
+\title{\textit{lasFE}: Computational HEPA Filtration Efficiency Analysis \\ PH6433 Project Proposal}
+\author{M.\,S.\,Wright}
+\email{wright@icet.msstate.edu}
+\affiliation{\icet}
+\affiliation{\physMSU}
+\date{\today}
+
+\begin{abstract}
+	This project proposal outlines the applications of computational methods to determine the number-collection Filtration Efficiency (FE) of nuclear-grade high-efficiency particulate air (HEPA) filters from data collected with a TSI model 3340A Laser Aerosol Spectrometer (LAS). FE is a crucial parameter in HEPA filter qualification and performance evaluation; filters must remove 99.997\% of $0.3\,\mu$m aerosol particles to meet the HEPA designation. While not the primary project focus, the analysis development is heavily influenced by the nuclear Software Quality Assurance (SQA) process. Proceduralized by ICET-QA-036 Rev.\,3, \textit{Software Control}, nuclear SQA emphasizes rigorous software development, testing, verification, version control, and maintenance practices to ensure the reliability and accuracy of nuclear-industry software including \textit{lasFE} \cite{icetqa-036}. FE-characterization data collection is controlled by ICET Quality Assurance (QA) procedures for measuring FE in a particualr aerosol test stand. \textit{lasFE} will perform a lognormal fit on aerosol particle-size distributions (PSD) collected upstream and downstream of a HEPA filter to determine particulate penetration, which is then reexpressed as FE. Current data-analysis methodolgies in-place at ICET are unable to make precise FE determinations from LAS data due to an instrumental abnormality. This software will employ advanced curve-smoothing algorithms to reduce instrumental effects, but this may be outside the scope of the class project.
+\end{abstract}
+
+\maketitle
+
+\section{Computational Methods}
+The \textit{lasFE} software will perform a variety of functions to process and analyze raw data collected with the LAS. This analysis is guided by IEST-RP-CC007.4, albeit not all recommended practices will be strictly followed \cite{iest}. \textit{lasFE} must first prepare the data for analysis by reading an aerosol-sample seperated data file, importing the data as a matrix, constructing a PSD histograms of upstream and downstream samples, then fitting the data sets to the lognormal distribution, 
+\[df=\frac{1}{\sqrt{2\pi}\ln\sigma_g}\exp\left(-\frac{(\ln d_p - \ln \mathrm{CMD})^2}{2(\ln\sigma_g)^2}\right)d\ln d_p,\]
+where $df$ is differential frequency, $\sigma_g$ is the gemoetric standard deviation, $d_p$ is the distribution's mean particle diameter, $d$ is the particle diameter of interest (i.e., $0.3\,\mu$m), and CMD is the Count Mean Diameter \cite{Hinds}. Penetration, $P$, is determined from the ratio of the upstream and downstream bins within size ranges determined by fit parameters. Penetration is easily converted to FE,
+\[FE = (1-P) \times 100\%.\]
+Given the LAS employs TSI aerosol diluters to control the particle concentration within the instrument, each bin of the upstream and downstream PSD must be appropriatly scaled by empirical dilution ratios.
+
+The software should output a PDF document representing a comprehensive analysis report.  This will include PSD plots, FE and penetration values with corresponding uncertainties and $95\%$ confidence intervals, and any other necessary information to characterize FE.
+
+\section{Conclusion}
+Through strict adherance to the NQA software-engineering process, this project represents a robust computational tool to enhance the current HEPA FE analysis capabilities. Historically, ICET has employed Microsoft Excel based Automated Calculation Application Packages (ACAP) to analyze data. While ACAP have been usful tools they are inheriently limited for complex statical analysis and efficient visualization. Transitioning from Excel ACAP to a Python script based approach embodies a strategic move towards more modern and flexible analysis methodologies.
+
+\bibliographystyle{unsrt}
+\bibliography{proposal}
+
+
+\end{document}

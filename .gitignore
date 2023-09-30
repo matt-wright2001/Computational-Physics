@@ -1,2 +1,8 @@
 
 *.pyc
+*.aux
+*.blg
+*.log
+*.pdf
+*.out
+Project/Proposal/proposalNotes.bib
