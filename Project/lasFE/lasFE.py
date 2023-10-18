@@ -41,6 +41,9 @@ headers = {
     14: "Flow"
 }
 
-for rowCount, row in enumerate(transposeData):
-    # If rowCount is in dictionary, print header. Otherwise, print the row
-    print(f"{headers.get(rowCount, row)} \n")
+# Split matrix into seperate matrices for header information and PSD data
+headerRows = [transposeData[rowCount] for rowCount in headers]
+dataRows = transposeData[len(headers):]
+
+# Find midpoint of particle-size bin
+midpointDataRows = [(sum(row[:2])/2, *row[2:]) for row in dataRows]
