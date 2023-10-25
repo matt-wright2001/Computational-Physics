@@ -47,3 +47,24 @@ dataRows = transposeData[len(headers):]
 
 # Find midpoint of particle-size bin
 midpointDataRows = [(sum(row[:2])/2, *row[2:]) for row in dataRows]
+
+# User input
+upSampleStart = 2
+upSampleEnd = 4
+
+downSampleStart = 10
+downSampleEnd = 12
+
+
+upSample   = range(upSampleStart, upSampleEnd)
+downSample = range(downSampleStart, downSampleEnd)
+
+# Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
+for row in midpointDataRows:
+    print(row)
+    for i in upSample:
+        print(row[i+1])
+    print('\t')
+    for i in downSample:
+        print(row[i+1])
+    print('\n')
