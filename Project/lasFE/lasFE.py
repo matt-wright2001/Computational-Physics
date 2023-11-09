@@ -11,6 +11,7 @@
 ## This version of lasFE has been developed for PH 6433 Computational Physics at MSU. This project is not subject to ASME-NQA-1 nor ICET-QA-036, Software Control, quality assurance requirements. For this reason, this software shall not be used for any purpose other than PH 6433.
 
 import csv
+import matplotlib.pyplot as plt
 
 # Read LAS data file
 filePath = './data/Dil_Char_6-10-21_LAS_100-1'
@@ -43,10 +44,14 @@ headers = {
 
 # Split matrix into seperate matrices for header information and PSD data
 headerRows = [transposeData[rowCount] for rowCount in headers]
-dataRows = transposeData[len(headers):]
+dataRows   =  transposeData[len(headers):]
 
-# Find midpoint of particle-size bin
-midpointDataRows = [(sum(row[:2])/2, *row[2:]) for row in dataRows]
+for row in dataRows:
+    if len(row) >= 2 and all(isinstance(x, (float, int)) for x in row[:2]):
+        binMidpoint = 0.5 * sum(row[:2])
+        sigma       = 0.5 * (row[1] - row[0])
+
+        row[0], row[1] = binMidpoint, sigma
 
 # User input
 upSampleStart = 2
@@ -55,16 +60,21 @@ upSampleEnd = 4
 downSampleStart = 10
 downSampleEnd = 12
 
+particleSizeOfInterest = 300
+upBound = particleSizeOfInterest + 200
+lowBound = particleSizeOfInterest - 200
 
 upSample   = range(upSampleStart, upSampleEnd)
 downSample = range(downSampleStart, downSampleEnd)
 
+plt.figure()
 # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
-for row in midpointDataRows:
-    print(row)
-    for i in upSample:
-        print(row[i+1])
-    print('\t')
-    for i in downSample:
-        print(row[i+1])
-    print('\n')
+for row in dataRows:
+    if lowBound <= row[0] <= upBound:
+        for i in upSample:
+            plt.scatter(row[0], row[i+1], color='red')
+
+        for i in downSample:
+            plt.scatter(row[0], row[i+1], color='blue')
+
+plt.show()
