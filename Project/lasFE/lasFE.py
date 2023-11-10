@@ -46,6 +46,7 @@ headers = {
 headerRows = [transposeData[rowCount] for rowCount in headers]
 dataRows   =  transposeData[len(headers):]
 
+# Particle-size bins (upper and lower bounds) replaced with bin midpoint and sigma
 for row in dataRows:
     if len(row) >= 2 and all(isinstance(x, (float, int)) for x in row[:2]):
         binMidpoint = 0.5 * sum(row[:2])
@@ -56,13 +57,13 @@ for row in dataRows:
 # User input
 upSampleStart = 2
 upSampleEnd = 4
-
 downSampleStart = 10
 downSampleEnd = 12
-
 particleSizeOfInterest = 300
-upBound = particleSizeOfInterest + 200
-lowBound = particleSizeOfInterest - 200
+windowSize = 200
+
+upBound = particleSizeOfInterest + windowSize
+lowBound = particleSizeOfInterest - windowSize
 
 upSample   = range(upSampleStart, upSampleEnd)
 downSample = range(downSampleStart, downSampleEnd)
