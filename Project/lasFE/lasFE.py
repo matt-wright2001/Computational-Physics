@@ -9,12 +9,11 @@
 ## User interaction with lasFE is facilatated through YAML Ain't Markup Language (YAML) configuration files. These files contain necessary information to process the data such as aerosol-sample numbers and instrumental parameters.
 
 ## This version of lasFE has been developed for PH 6433 Computational Physics at MSU. This project is not subject to ASME-NQA-1 nor ICET-QA-036, Software Control, quality assurance requirements. For this reason, this software shall not be used for any purpose other than PH 6433.
+import csv
+import matplotlib.pyplot as plt
+import yaml
 
 def main():
-    import csv
-    import matplotlib.pyplot as plt
-    import yaml
-
     # Read YAML configuration file
     with open('config.yml', 'r') as config_file:
         config = yaml.safe_load(config_file)
