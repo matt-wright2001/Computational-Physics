@@ -12,6 +12,8 @@
 import csv
 import matplotlib.pyplot as plt
 import yaml
+import numpy as np
+from scipy.stats import lognorm
 
 def main():
     # Read YAML configuration file
@@ -76,14 +78,33 @@ def main():
 
             for i in downSample:
                 downstreamPSD.append((row[0], row[i+1], row[1]))
+    
+    plt.figure()
+    # Fit the upstream and downstream PSDs to a lognormal distribution
+    upstream_sizes   = [point[0] for point in upstreamPSD]
+    downstream_sizes = [point[0] for point in downstreamPSD]
+
+    upstream_concentrations   = [point[1] for point in upstreamPSD]
+    downstream_concentrations = [point[1] for point in downstreamPSD]
+
+    # Renormalize the concentrations
+    upstream_concentrations   = [point[1] / sum(upstream_concentrations)   for point in upstreamPSD]
+    downstream_concentrations = [point[1] / sum(downstream_concentrations) for point in downstreamPSD]
+
+    upstream_shape, upstream_loc, upstream_scale = lognorm.fit(upstream_sizes)
+    downstream_shape, downstream_loc, downstream_scale = lognorm.fit(downstream_sizes)
+
+    # Plot the fitted distributions
+    x = np.linspace(min(upstream_sizes + downstream_sizes), max(upstream_sizes + downstream_sizes), 1000)
+    plt.plot(x, lognorm.pdf(x, upstream_shape,   loc=upstream_loc,   scale=upstream_scale),   color='red',  linestyle='dashed', label='Fitted Upstream PSD')
+    plt.plot(x, lognorm.pdf(x, downstream_shape, loc=downstream_loc, scale=downstream_scale), color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
-    plt.figure()
-    for point in upstreamPSD:
-        plt.errorbar(point[0], point[1], xerr=point[2], color='red', fmt='o', label='Upstream PSD')
+    for point, concentration in zip(upstreamPSD, upstream_concentrations):
+        plt.errorbar(point[0], concentration, xerr=point[2], color='red', fmt='o', label='Upstream PSD')
 
-    for point in downstreamPSD:
-        plt.errorbar(point[0], point[1], xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
+    for point,concentration in zip(downstreamPSD, downstream_concentrations):
+        plt.errorbar(point[0], concentration, xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
 
     # Format plot
     plt.title('Particle Size Distribution')
@@ -93,7 +114,6 @@ def main():
     plt.xlabel('Particle Size (nm)')
     plt.ylabel('Concentration $(particles/cm^3)$')
     plt.xscale('log')
-
     plt.show()
 
 if __name__ == "__main__":
