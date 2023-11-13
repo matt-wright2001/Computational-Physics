@@ -68,33 +68,34 @@ lowBound = particleSizeOfInterest - windowSize
 upSample   = range(upSampleStart, upSampleEnd)
 downSample = range(downSampleStart, downSampleEnd)
 
-plt.figure()
-plt.title('Particle Size Distribution')
-
 upstreamPSD = []
 downstreamPSD = []
 
 # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
+# Data stored as tuples: (particle size, concentration, uncertainty in size)
 for row in dataRows:
     if lowBound <= row[0] <= upBound:
         for i in upSample:
-            upstreamPSD.append((row[0], row[i+1]))
+            upstreamPSD.append((row[0], row[i+1], row[1])) 
 
         for i in downSample:
-            downstreamPSD.append((row[0], row[i+1]))
+            downstreamPSD.append((row[0], row[i+1], row[1]))
 
-# Plot the upstream and downstream PSDs directly from the lists of tuples
+# Plot upstream and downstream PSD
+plt.figure()
 for point in upstreamPSD:
-    plt.scatter(*point, color='red', label='Upstream PSD')
+    plt.errorbar(point[0], point[1], xerr=point[2], color='red', fmt='o', label='Upstream PSD')
 
 for point in downstreamPSD:
-    plt.scatter(*point, color='blue', label='Downstream PSD')
+    plt.errorbar(point[0], point[1], xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
 
-# Remove duplicate labels in the legend
+# Format plot
+plt.title('Particle Size Distribution')
 handles, labels = plt.gca().get_legend_handles_labels()
 by_label = dict(zip(labels, handles))
-plt.legend(by_label.values(), by_label.keys(), loc='upper right')
+plt.legend(by_label.values(), by_label.keys(), loc='upper left')
 plt.xlabel('Particle Size (nm)')
 plt.ylabel('Concentration $(particles/cm^3)$')
+plt.xscale('log')
 
 plt.show()
