@@ -12,11 +12,15 @@
 
 import csv
 import matplotlib.pyplot as plt
+import yaml
+
+# Read YAML configuration file
+with open('config.yml', 'r') as config_file:
+    config = yaml.safe_load(config_file)
 
 # Read LAS data file
-filePath = './data/Dil_Char_6-10-21_LAS_100-1'
-with open(filePath, newline='') as file:
-    reader = csv.reader(file, delimiter='\t')
+with open(config['dataFilePath'], newline='') as data_file:
+    reader = csv.reader(data_file, delimiter='\t')
     data = [[float(item) if item.replace('.', '', 1).isdigit() else item for item in row] for row in reader]
 
 # Transpose data to group by rows in LAS data file
@@ -54,21 +58,13 @@ for row in dataRows:
 
         row[0], row[1] = binMidpoint, sigma
 
-# User input
-upSampleStart = 2
-upSampleEnd = 4
-downSampleStart = 11
-downSampleEnd = 13
-particleSizeOfInterest = 300
-windowSize = 200
+upBound  = config['particleSizeOfInterest'] + config['windowSize']
+lowBound = config['particleSizeOfInterest'] - config['windowSize']
 
-upBound = particleSizeOfInterest + windowSize
-lowBound = particleSizeOfInterest - windowSize
+upSample   = range(config['upSampleStart'],   config['upSampleEnd'])
+downSample = range(config['downSampleStart'], config['downSampleEnd'])
 
-upSample   = range(upSampleStart, upSampleEnd)
-downSample = range(downSampleStart, downSampleEnd)
-
-upstreamPSD = []
+upstreamPSD   = []
 downstreamPSD = []
 
 # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin

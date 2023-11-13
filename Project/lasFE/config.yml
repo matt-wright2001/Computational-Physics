@@ -1,0 +1,7 @@
+dataFilePath: './data/Dil_Char_6-10-21_LAS_100-1'
+upSampleStart: 2
+upSampleEnd: 4
+downSampleStart: 11
+downSampleEnd: 13
+particleSizeOfInterest: 300
+windowSize: 200
