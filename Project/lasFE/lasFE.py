@@ -57,8 +57,8 @@ for row in dataRows:
 # User input
 upSampleStart = 2
 upSampleEnd = 4
-downSampleStart = 10
-downSampleEnd = 12
+downSampleStart = 11
+downSampleEnd = 13
 particleSizeOfInterest = 300
 windowSize = 200
 
@@ -69,13 +69,32 @@ upSample   = range(upSampleStart, upSampleEnd)
 downSample = range(downSampleStart, downSampleEnd)
 
 plt.figure()
+plt.title('Particle Size Distribution')
+
+upstreamPSD = []
+downstreamPSD = []
+
 # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
 for row in dataRows:
     if lowBound <= row[0] <= upBound:
         for i in upSample:
-            plt.scatter(row[0], row[i+1], color='red')
+            upstreamPSD.append((row[0], row[i+1]))
 
         for i in downSample:
-            plt.scatter(row[0], row[i+1], color='blue')
+            downstreamPSD.append((row[0], row[i+1]))
+
+# Plot the upstream and downstream PSDs directly from the lists of tuples
+for point in upstreamPSD:
+    plt.scatter(*point, color='red', label='Upstream PSD')
+
+for point in downstreamPSD:
+    plt.scatter(*point, color='blue', label='Downstream PSD')
+
+# Remove duplicate labels in the legend
+handles, labels = plt.gca().get_legend_handles_labels()
+by_label = dict(zip(labels, handles))
+plt.legend(by_label.values(), by_label.keys(), loc='upper right')
+plt.xlabel('Particle Size (nm)')
+plt.ylabel('Concentration $(particles/cm^3)$')
 
 plt.show()
