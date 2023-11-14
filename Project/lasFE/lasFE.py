@@ -13,7 +13,7 @@ import csv
 import matplotlib.pyplot as plt
 import yaml
 import numpy as np
-from scipy.stats import lognorm
+import scipy.stats as stats
 
 def main():
     # Read YAML configuration file
@@ -59,7 +59,11 @@ def main():
             sigma       = 0.5 * (row[1] - row[0])
 
             row[0], row[1] = binMidpoint, sigma
+    
+    upstreamDilution   = 1226.08
+    downstreamDilution = 1
 
+    # Only consider data within the user-specified samples and particle-size range
     upBound  = config['particleSizeOfInterest'] + config['windowSize']
     lowBound = config['particleSizeOfInterest'] - config['windowSize']
 
@@ -80,6 +84,7 @@ def main():
                 downstreamPSD.append((row[0], row[i+1], row[1]))
     
     plt.figure()
+
     # Fit the upstream and downstream PSDs to a lognormal distribution
     upstream_sizes   = [point[0] for point in upstreamPSD]
     downstream_sizes = [point[0] for point in downstreamPSD]
@@ -88,16 +93,24 @@ def main():
     downstream_concentrations = [point[1] for point in downstreamPSD]
 
     # Renormalize the concentrations
-    upstream_concentrations   = [point[1] / sum(upstream_concentrations)   for point in upstreamPSD]
-    downstream_concentrations = [point[1] / sum(downstream_concentrations) for point in downstreamPSD]
+    upstream_concentrations   = [point / sum(upstream_concentrations)   for point in upstream_concentrations]
+    downstream_concentrations = [point / sum(downstream_concentrations) for point in downstream_concentrations]
 
-    upstream_shape, upstream_loc, upstream_scale = lognorm.fit(upstream_sizes)
-    downstream_shape, downstream_loc, downstream_scale = lognorm.fit(downstream_sizes)
+    upstreamGeoMean   = stats.gmean(upstream_concentrations)
+    upstreamGSD       = stats.gstd(upstream_concentrations)
+    downstreamGeoMean = stats.gmean(downstream_concentrations)
+    downstreamGSD     = stats.gstd(downstream_concentrations)
+
+    print(f'Upstream: \t GM={upstreamGeoMean} \t GSD={upstreamGSD}')
+    print(f'Downstream: \t GM={downstreamGeoMean} \t GSD={downstreamGSD}')
+
+    upstream_shape, upstream_loc, upstream_scale = stats.lognorm.fit(upstream_sizes)
+    downstream_shape, downstream_loc, downstream_scale = stats.lognorm.fit(downstream_sizes)
 
     # Plot the fitted distributions
     x = np.linspace(min(upstream_sizes + downstream_sizes), max(upstream_sizes + downstream_sizes), 1000)
-    plt.plot(x, lognorm.pdf(x, upstream_shape,   loc=upstream_loc,   scale=upstream_scale),   color='red',  linestyle='dashed', label='Fitted Upstream PSD')
-    plt.plot(x, lognorm.pdf(x, downstream_shape, loc=downstream_loc, scale=downstream_scale), color='blue', linestyle='dashed', label='Fitted Downstream PSD')
+    plt.plot(x, stats.lognorm.pdf(x, upstream_shape,   loc=upstream_loc,   scale=upstream_scale),   color='red',  linestyle='dashed', label='Fitted Upstream PSD')
+    plt.plot(x, stats.lognorm.pdf(x, downstream_shape, loc=downstream_loc, scale=downstream_scale), color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
     for point, concentration in zip(upstreamPSD, upstream_concentrations):
@@ -115,6 +128,7 @@ def main():
     plt.ylabel('Concentration $(particles/cm^3)$')
     plt.xscale('log')
     plt.show()
+
 
 if __name__ == "__main__":
     main()
