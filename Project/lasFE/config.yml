@@ -5,3 +5,5 @@ downSampleStart: 11
 downSampleEnd: 13
 particleSizeOfInterest: 300
 windowSize: 200
+upstreamDilution: 1226.08
+downstreamDilution: 1

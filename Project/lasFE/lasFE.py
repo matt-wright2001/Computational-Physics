@@ -15,6 +15,16 @@ import yaml
 import numpy as np
 import scipy.stats as stats
 
+def lognormDistribution(dp, CMD, GSD, concentration):
+    '''
+    dp: particle diameter
+    CMD: count median diameter
+    GSD: geometric standard deviation
+    '''
+
+    # Particle-Size Frequency Function (Hinds, Equation 4.41)
+    return (concentration / (np.sqrt(2 * np.pi) * dp * np.log(GSD))) * np.exp(- (np.log(dp) - np.log(CMD))**2 / (2 * np.log(GSD)**2))
+
 def main():
     # Read YAML configuration file
     with open('config.yml', 'r') as config_file:
@@ -59,9 +69,6 @@ def main():
             sigma       = 0.5 * (row[1] - row[0])
 
             row[0], row[1] = binMidpoint, sigma
-    
-    upstreamDilution   = 1226.08
-    downstreamDilution = 1
 
     # Only consider data within the user-specified samples and particle-size range
     upBound  = config['particleSizeOfInterest'] + config['windowSize']
@@ -82,8 +89,6 @@ def main():
 
             for i in downSample:
                 downstreamPSD.append((row[0], row[i+1], row[1]))
-    
-    plt.figure()
 
     # Fit the upstream and downstream PSDs to a lognormal distribution
     upstream_sizes   = [point[0] for point in upstreamPSD]
@@ -93,28 +98,27 @@ def main():
     downstream_concentrations = [point[1] for point in downstreamPSD]
 
     # Renormalize the concentrations
-    upstream_concentrations   = [point / sum(upstream_concentrations)   for point in upstream_concentrations]
-    downstream_concentrations = [point / sum(downstream_concentrations) for point in downstream_concentrations]
+    #upstream_concentrations   = [point / sum(upstream_concentrations)   for point in upstream_concentrations]
+    #downstream_concentrations = [point / sum(downstream_concentrations) for point in downstream_concentrations]
 
-    upstreamGeoMean   = stats.gmean(upstream_concentrations)
-    upstreamGSD       = stats.gstd(upstream_concentrations)
-    downstreamGeoMean = stats.gmean(downstream_concentrations)
-    downstreamGSD     = stats.gstd(downstream_concentrations)
+    upstreamGeoMean   = np.exp(np.mean(np.log(upstream_sizes)))
+    upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
+    downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
+    downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
 
     print(f'Upstream: \t GM={upstreamGeoMean} \t GSD={upstreamGSD}')
     print(f'Downstream: \t GM={downstreamGeoMean} \t GSD={downstreamGSD}')
 
-    upstream_shape, upstream_loc, upstream_scale = stats.lognorm.fit(upstream_sizes)
-    downstream_shape, downstream_loc, downstream_scale = stats.lognorm.fit(downstream_sizes)
+    upstreamDistribution   = [4.75 * lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
+    downstreamDistribution = [4.50 * lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
 
-    # Plot the fitted distributions
-    x = np.linspace(min(upstream_sizes + downstream_sizes), max(upstream_sizes + downstream_sizes), 1000)
-    plt.plot(x, stats.lognorm.pdf(x, upstream_shape,   loc=upstream_loc,   scale=upstream_scale),   color='red',  linestyle='dashed', label='Fitted Upstream PSD')
-    plt.plot(x, stats.lognorm.pdf(x, downstream_shape, loc=downstream_loc, scale=downstream_scale), color='blue', linestyle='dashed', label='Fitted Downstream PSD')
+    plt.figure()
+    plt.plot(upstream_sizes, upstreamDistribution, color='red', linestyle='dashed', label='Fitted Upstream PSD')
+    plt.plot(downstream_sizes, downstreamDistribution, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
     for point, concentration in zip(upstreamPSD, upstream_concentrations):
-        plt.errorbar(point[0], concentration, xerr=point[2], color='red', fmt='o', label='Upstream PSD')
+       plt.errorbar(point[0], concentration, xerr=point[2], color='red', fmt='o', label='Upstream PSD')
 
     for point,concentration in zip(downstreamPSD, downstream_concentrations):
         plt.errorbar(point[0], concentration, xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
