@@ -39,7 +39,7 @@ def main():
     transposeData = list(zip(*data))
     transposeData = [list(row) for row in transposeData]
 
-    # Map rowCount to header string
+    # Map row to header string
     headers = {
         0: "Date",
         1: "Time",
@@ -59,7 +59,7 @@ def main():
     }
 
     # Split matrix into seperate matrices for header information and PSD data
-    headerRows = [transposeData[rowCount] for rowCount in headers]
+    headerRows = [transposeData[row] for row in headers]
     dataRows   =  transposeData[len(headers):]
 
     # Particle-size bins (upper and lower bounds) replaced with bin midpoint and sigma
@@ -89,7 +89,6 @@ def main():
 
             for i in downSample:
                 downstreamPSD.append((row[0], row[i+1], row[1]))
-
     # Fit the upstream and downstream PSDs to a lognormal distribution
     upstream_sizes   = [point[0] for point in upstreamPSD]
     downstream_sizes = [point[0] for point in downstreamPSD]
@@ -122,6 +121,7 @@ def main():
 
     for point,concentration in zip(downstreamPSD, downstream_concentrations):
         plt.errorbar(point[0], concentration, xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
+        
 
     # Format plot
     plt.title('Particle Size Distribution')
