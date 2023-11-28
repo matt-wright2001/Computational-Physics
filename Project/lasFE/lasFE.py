@@ -111,7 +111,7 @@ def main():
     upstreamDistribution   = [4.75 * lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
     downstreamDistribution = [4.50 * lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
 
-    plt.figure()
+    plt.figure("LAS Particle Size Distribution")
     plt.plot(upstream_sizes, upstreamDistribution, color='red', linestyle='dashed', label='Fitted Upstream PSD')
     plt.plot(downstream_sizes, downstreamDistribution, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
