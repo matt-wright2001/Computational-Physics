@@ -13,7 +13,7 @@ import csv
 import matplotlib.pyplot as plt
 import yaml
 import numpy as np
-import scipy.stats as stats
+from scipy.integrate import trapz
 
 def lognormDistribution(dp, CMD, GSD, concentration):
     '''
@@ -96,10 +96,6 @@ def main():
     upstream_concentrations   = [point[1] for point in upstreamPSD]
     downstream_concentrations = [point[1] for point in downstreamPSD]
 
-    # Renormalize the concentrations
-    #upstream_concentrations   = [point / sum(upstream_concentrations)   for point in upstream_concentrations]
-    #downstream_concentrations = [point / sum(downstream_concentrations) for point in downstream_concentrations]
-
     upstreamGeoMean   = np.exp(np.mean(np.log(upstream_sizes)))
     upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
@@ -108,12 +104,26 @@ def main():
     print(f'Upstream: \t GM={upstreamGeoMean} \t GSD={upstreamGSD}')
     print(f'Downstream: \t GM={downstreamGeoMean} \t GSD={downstreamGSD}')
 
-    upstreamDistribution   = [4.75 * lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
-    downstreamDistribution = [4.50 * lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
+    upstreamShift = -70
+    downstreamShift = -50
+
+    upstreamDistribution   = [lognormDistribution(dp + upstreamShift, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
+    downstreamDistribution = [lognormDistribution(dp + downstreamShift, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
+
+    upstreamArea = trapz(upstream_concentrations, upstream_sizes)
+    downstreamArea = trapz(downstream_concentrations, downstream_sizes)
+    upstreamFitArea = trapz(upstreamDistribution, upstream_sizes)
+    downstreamFitArea = trapz(downstreamDistribution, downstream_sizes)
+
+    upstreamScale = upstreamArea / upstreamFitArea
+    downstreamScale = downstreamArea / downstreamFitArea
+
+    scaledUpstream = [point * upstreamScale for point in upstreamDistribution]
+    scaledDownstream = [point * downstreamScale for point in downstreamDistribution]
 
     plt.figure("LAS Particle Size Distribution")
-    plt.plot(upstream_sizes, upstreamDistribution, color='red', linestyle='dashed', label='Fitted Upstream PSD')
-    plt.plot(downstream_sizes, downstreamDistribution, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
+    plt.plot(upstream_sizes, scaledUpstream, color='red', linestyle='dashed', label='Fitted Upstream PSD')
+    plt.plot(downstream_sizes, scaledDownstream, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
     for point, concentration in zip(upstreamPSD, upstream_concentrations):
