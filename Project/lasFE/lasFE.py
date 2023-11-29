@@ -121,8 +121,8 @@ def main():
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
     downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
 
-    upstreamDistribution   = [lognormDistribution(dp + upstreamShift, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
-    downstreamDistribution = [lognormDistribution(dp + downstreamShift, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
+    upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
+    downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
 
     upstreamArea = trapz(upstream_concentrations, upstream_sizes)
     downstreamArea = trapz(downstream_concentrations, downstream_sizes)
