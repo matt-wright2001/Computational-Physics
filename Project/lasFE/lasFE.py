@@ -43,10 +43,10 @@ def main():
     headers = {
         0: "Date",
         1: "Time",
-        2: "Accum.",
+        2: "Accumulated seconds",
         3: "Scatter",
         4: "Current",
-        5: "Sample",
+        5: "Sample flow",
         6: "Ref.",
         7: "Temp.",
         8: "Sheath",
@@ -89,6 +89,26 @@ def main():
 
             for i in downSample:
                 downstreamPSD.append((row[0], row[i+1], row[1]))
+
+    # Pull sample accumulated seconds and flow rate from header information
+    upstreamTime = 0
+    upstreamSampleFlow = []
+    for i in upSample:
+        upstreamTime += headerRows[2][i]
+        upstreamSampleFlow.append(headerRows[5][i])
+    upstreamTime = upstreamTime / 60 ## Convert seconds to minutes
+    upstreamSampleFlow = sum(upstreamSampleFlow) / len(upstreamSampleFlow)
+    upstreamSample = upstreamTime * upstreamSampleFlow
+
+    downstreamTime = 0
+    downstreamSampleFlow = []
+    for i in downSample:
+        downstreamTime += headerRows[2][i]
+        downstreamSampleFlow.append(headerRows[5][i])
+    downstreamTime = downstreamTime / 60 ## Convert seconds to minutes
+    downstreamSampleFlow = sum(downstreamSampleFlow) / len(downstreamSampleFlow)
+    downstreamSample = downstreamTime * downstreamSampleFlow
+
     # Fit the upstream and downstream PSDs to a lognormal distribution
     upstream_sizes   = [point[0] for point in upstreamPSD]
     downstream_sizes = [point[0] for point in downstreamPSD]
@@ -100,12 +120,6 @@ def main():
     upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
     downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
-
-    print(f'Upstream: \t GM={upstreamGeoMean} \t GSD={upstreamGSD}')
-    print(f'Downstream: \t GM={downstreamGeoMean} \t GSD={downstreamGSD}')
-
-    upstreamShift = -70
-    downstreamShift = -50
 
     upstreamDistribution   = [lognormDistribution(dp + upstreamShift, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
     downstreamDistribution = [lognormDistribution(dp + downstreamShift, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
@@ -131,7 +145,11 @@ def main():
 
     for point,concentration in zip(downstreamPSD, downstream_concentrations):
         plt.errorbar(point[0], concentration, xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
-        
+
+    upstream = [(config["upstreamDilution"] * concentration) / upstreamSample for concentration in upstream_concentrations]
+    downstream = [(config["downstreamDilution"] * concentration) / downstreamSample for concentration in downstream_concentrations]
+
+    FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
 
     # Format plot
     plt.title('Particle Size Distribution')
@@ -142,7 +160,6 @@ def main():
     plt.ylabel('Concentration $(particles/cm^3)$')
     plt.xscale('log')
     plt.show()
-
 
 if __name__ == "__main__":
     main()
