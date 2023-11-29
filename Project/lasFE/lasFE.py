@@ -150,6 +150,10 @@ def main():
     downstream = [(config["downstreamDilution"] * concentration) / downstreamSample for concentration in downstream_concentrations]
 
     FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
+    for i in range(len(FE)):
+        if FE[i] == min(FE):
+            mpps = upstream_sizes[i]
+    print(f'Most Penetrating Particle Size: {mpps} nm \t Associated Filtration Efficiency: {min(FE)*100}%')
 
     # Format plot
     plt.title('Particle Size Distribution')
@@ -159,6 +163,10 @@ def main():
     plt.xlabel('Particle Size (nm)')
     plt.ylabel('Concentration $(particles/cm^3)$')
     plt.xscale('log')
+    plt.show()
+
+    plt.figure("FE")
+    plt.scatter(upstream_sizes, FE, color='black', label='FE')
     plt.show()
 
 if __name__ == "__main__":
