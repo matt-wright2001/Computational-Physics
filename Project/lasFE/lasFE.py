@@ -9,6 +9,7 @@
 ## User interaction with lasFE is facilatated through YAML Ain't Markup Language (YAML) configuration files. These files contain necessary information to process the data such as aerosol-sample numbers and instrumental parameters.
 
 ## This version of lasFE has been developed for PH 6433 Computational Physics at MSU. This project is not subject to ASME-NQA-1 nor ICET-QA-036, Software Control, quality assurance requirements. For this reason, this software shall not be used for any purpose other than PH 6433.
+
 import csv
 import matplotlib.pyplot as plt
 import yaml
@@ -77,11 +78,11 @@ def main():
     upSample   = range(config['upSampleStart'],   config['upSampleEnd'])
     downSample = range(config['downSampleStart'], config['downSampleEnd'])
 
+    # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
+    # Data stored as tuples: (particle size, concentration, uncertainty in size)
     upstreamPSD   = []
     downstreamPSD = []
 
-    # Pull data corresponding to user-specified aerosol sample numbers from each particle size bin
-    # Data stored as tuples: (particle size, concentration, uncertainty in size)
     for row in dataRows:
         if lowBound <= row[0] <= upBound:
             for i in upSample:
@@ -97,7 +98,7 @@ def main():
         upstreamTime += headerRows[2][i]
         upstreamSampleFlow.append(headerRows[5][i])
     upstreamTime = upstreamTime / 60 ## Convert seconds to minutes
-    upstreamSampleFlow = sum(upstreamSampleFlow) / len(upstreamSampleFlow)
+    upstreamSampleFlow = np.average(upstreamSampleFlow)
     upstreamSample = upstreamTime * upstreamSampleFlow
 
     downstreamTime = 0
@@ -106,16 +107,23 @@ def main():
         downstreamTime += headerRows[2][i]
         downstreamSampleFlow.append(headerRows[5][i])
     downstreamTime = downstreamTime / 60 ## Convert seconds to minutes
-    downstreamSampleFlow = sum(downstreamSampleFlow) / len(downstreamSampleFlow)
+    downstreamSampleFlow = np.average(downstreamSampleFlow)
     downstreamSample = downstreamTime * downstreamSampleFlow
 
-    # Fit the upstream and downstream PSDs to a lognormal distribution
-    upstream_sizes   = [point[0] for point in upstreamPSD]
-    downstream_sizes = [point[0] for point in downstreamPSD]
-
+    upstream_sizes            = [point[0] for point in upstreamPSD]
+    downstream_sizes          = [point[0] for point in downstreamPSD]
     upstream_concentrations   = [point[1] for point in upstreamPSD]
     downstream_concentrations = [point[1] for point in downstreamPSD]
 
+    upstream   = [(config["upstreamDilution"] * concentration) / upstreamSample for concentration in upstream_concentrations]
+    downstream = [(config["downstreamDilution"] * concentration) / downstreamSample for concentration in downstream_concentrations]
+
+    FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
+    for i in range(len(FE)):
+        if FE[i] == min(FE): mpps = upstream_sizes[i]
+    print(f'Most Penetrating Particle Size: {mpps} nm \t Associated Filtration Efficiency: {min(FE)*100}%')
+
+    # Fit the upstream and downstream PSDs to a lognormal distribution
     upstreamGeoMean   = np.exp(np.mean(np.log(upstream_sizes)))
     upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
@@ -124,15 +132,15 @@ def main():
     upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
     downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
 
-    upstreamArea = trapz(upstream_concentrations, upstream_sizes)
-    downstreamArea = trapz(downstream_concentrations, downstream_sizes)
-    upstreamFitArea = trapz(upstreamDistribution, upstream_sizes)
+    upstreamArea      = trapz(upstream_concentrations, upstream_sizes)
+    downstreamArea    = trapz(downstream_concentrations, downstream_sizes)
+    upstreamFitArea   = trapz(upstreamDistribution, upstream_sizes)
     downstreamFitArea = trapz(downstreamDistribution, downstream_sizes)
 
-    upstreamScale = upstreamArea / upstreamFitArea
+    upstreamScale   = upstreamArea   / upstreamFitArea
     downstreamScale = downstreamArea / downstreamFitArea
 
-    scaledUpstream = [point * upstreamScale for point in upstreamDistribution]
+    scaledUpstream   = [point * upstreamScale for point in upstreamDistribution]
     scaledDownstream = [point * downstreamScale for point in downstreamDistribution]
 
     plt.figure("LAS Particle Size Distribution")
@@ -146,14 +154,6 @@ def main():
     for point,concentration in zip(downstreamPSD, downstream_concentrations):
         plt.errorbar(point[0], concentration, xerr=point[2], color='blue', fmt='o', label='Downstream PSD')
 
-    upstream = [(config["upstreamDilution"] * concentration) / upstreamSample for concentration in upstream_concentrations]
-    downstream = [(config["downstreamDilution"] * concentration) / downstreamSample for concentration in downstream_concentrations]
-
-    FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
-    for i in range(len(FE)):
-        if FE[i] == min(FE):
-            mpps = upstream_sizes[i]
-    print(f'Most Penetrating Particle Size: {mpps} nm \t Associated Filtration Efficiency: {min(FE)*100}%')
 
     # Format plot
     plt.title('Particle Size Distribution')
