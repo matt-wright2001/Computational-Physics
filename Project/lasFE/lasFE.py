@@ -134,24 +134,30 @@ def main():
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
     downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
 
-    print(f'Upstream Geometric Mean:   {upstreamGeoMean} \t Upstream GSD:   {upstreamGSD}')
-    print(f'Downstream Geometric Mean: {downstreamGeoMean} \t Downstream GSD: {downstreamGSD}')
+    print(f'Parameter Inital Guess:   Upstream Geometric Mean:   {upstreamGeoMean} \t Upstream GSD:   {upstreamGSD}')
+    print(f'                          Downstream Geometric Mean: {downstreamGeoMean} \t Downstream GSD: {downstreamGSD}')
 
     # Iterative fit
     upstreamGuess   = [upstreamGeoMean, upstreamGSD]
     downstreamGuess = [downstreamGeoMean, downstreamGSD]
+    bounds          = ([min(upstream_sizes), 1.4], [max(upstream_sizes), 1.8])
     goodFit         = [295, 1.5906]
 
-    optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess)
-    optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess)
+    # Dogbox method because bounded and large number data points relative to parameters
+    optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='dogbox', bounds=bounds)
+    optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='dogbox', bounds=bounds)
 
-    #fitted_upstream = lognormDistribution(upstream_sizes, *opt_upstream)
+    # Levenberg-Marquardt excluding bounds
+    #optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='lm')
+    #optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='lm')
+
+    fitted_upstream = lognormDistribution(upstream_sizes, *optimum_upstream)
     #fitted_upstream = lognormDistribution(upstream_sizes, *upstreamGuess)
-    fitted_upstream = lognormDistribution(upstream_sizes, *goodFit)
+    #fitted_upstream = lognormDistribution(upstream_sizes, *goodFit)
 
-    #fitted_downstream = lognormDistribution(downstream_sizes, *opt_downstream) 
+    fitted_downstream = lognormDistribution(downstream_sizes, *optimum_downstream) 
     #fitted_downstream = lognormDistribution(downstream_sizes, *downstreamGuess)
-    fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
+    #fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
 
     print(f"Optimized Parameters:   Upstream GM:   {optimum_upstream[0]} \t Upstream GSD:   {optimum_upstream[1]}")
     print(f"                        Downstream GM: {optimum_downstream[0]} \t Downstream GSD: {optimum_downstream[1]}")
