@@ -131,6 +131,7 @@ def main():
     FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
     for i in range(len(FE)):
         if FE[i] == min(FE): mpps = upstream_sizes[i]
+    print(f'Minimum FE: {min(FE) * 100}% at {mpps} nm')
     
     # Fit the upstream and downstream PSDs to a lognormal distribution
     ## Initial Guesses of Fit Parameters
@@ -164,8 +165,8 @@ def main():
     #fitted_downstream = lognormDistribution(downstream_sizes, *downstreamGuess)
     #fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
 
-    print(f"Optimized Parameters:   Upstream GM:   {optimum_upstream[0]} \t Upstream GSD:   {optimum_upstream[1]}")
-    print(f"                        Downstream GM: {optimum_downstream[0]} \t Downstream GSD: {optimum_downstream[1]}")
+    print(f"Optimized Parameters:     Upstream GM:   {optimum_upstream[0]} \t Upstream GSD:   {optimum_upstream[1]}")
+    print(f"                          Downstream GM: {optimum_downstream[0]} \t Downstream GSD: {optimum_downstream[1]}")
 
     upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD) for dp in upstream_sizes]
     downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD) for dp in downstream_sizes]
