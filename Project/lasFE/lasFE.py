@@ -14,7 +14,6 @@ import csv
 import matplotlib.pyplot as plt
 import yaml
 import numpy as np
-from scipy.integrate import trapz
 from scipy.optimize import curve_fit
 
 def lognormDistribution(dp, CMD, GSD):
@@ -30,6 +29,12 @@ def lognormDistribution(dp, CMD, GSD):
     
     # Particle-Size Frequency Function (Hinds, Equation 4.41)
     return (1 / (np.sqrt(2 * np.pi) * dp * np.log(GSD))) * np.exp(- (np.log(dp) - np.log(CMD))**2 / (2 * np.log(GSD)**2))
+
+def trapezoidIntegral(y, x):
+    integral = 0
+    for i in range(1, len(y)):
+        integral += 0.5 * (y[i] + y[i-1]) * (x[i] - x[i-1])
+    return integral
 
 def main():
     # Read YAML configuration file
@@ -165,8 +170,8 @@ def main():
     upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD) for dp in upstream_sizes]
     downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD) for dp in downstream_sizes]
 
-    upstreamScale   = trapz(upstream_concentrations,   upstream_sizes)   / trapz(upstreamDistribution,   upstream_sizes)
-    downstreamScale = trapz(downstream_concentrations, downstream_sizes) / trapz(downstreamDistribution, downstream_sizes)
+    upstreamScale   = trapezoidIntegral(upstream_concentrations,   upstream_sizes)   / trapezoidIntegral(upstreamDistribution,   upstream_sizes)
+    downstreamScale = trapezoidIntegral(downstream_concentrations, downstream_sizes) / trapezoidIntegral(downstreamDistribution, downstream_sizes)
 
     fitted_upstream   *= upstreamScale
     fitted_downstream *= downstreamScale
