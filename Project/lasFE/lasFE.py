@@ -36,6 +36,12 @@ def trapezoidIntegral(y, x):
         integral += 0.5 * (y[i] + y[i-1]) * (x[i] - x[i-1])
     return integral
 
+def geometricMean(data):
+    return np.exp(np.mean(np.log(data)))
+
+def geometricStDev(data):
+    return np.exp(np.std(np.log(data)))
+
 def main():
     # Read YAML configuration file
     with open('config.yml', 'r') as config_file:
@@ -107,38 +113,45 @@ def main():
     for i in upSample:
         upstreamTime += headerRows[2][i]
         upstreamSampleFlow.append(headerRows[5][i])
-    upstreamTime = upstreamTime / 60 ## Convert seconds to minutes
+    
+    upstreamTime /= 60 ## Convert seconds to minutes
     upstreamSampleFlow = np.average(upstreamSampleFlow)
-    upstreamSample = upstreamTime * upstreamSampleFlow
+    upstreamVol = upstreamTime * upstreamSampleFlow
 
     downstreamTime = 0
     downstreamSampleFlow = []
     for i in downSample:
         downstreamTime += headerRows[2][i]
         downstreamSampleFlow.append(headerRows[5][i])
-    downstreamTime = downstreamTime / 60 ## Convert seconds to minutes
-    downstreamSampleFlow = np.average(downstreamSampleFlow)
-    downstreamSample = downstreamTime * downstreamSampleFlow
 
+    downstreamTime /= 60 ## Convert seconds to minutes
+    downstreamSampleFlow = np.average(downstreamSampleFlow)
+    downstreamVol = downstreamTime * downstreamSampleFlow
+
+    # Split PSD into particle sizes and concentrations
     upstream_sizes            = [point[0] for point in upstreamPSD]
     downstream_sizes          = [point[0] for point in downstreamPSD]
     upstream_concentrations   = [point[1] for point in upstreamPSD]
     downstream_concentrations = [point[1] for point in downstreamPSD]
 
-    upstream   = [(config["upstreamDilution"] * concentration) / upstreamSample for concentration in upstream_concentrations]
-    downstream = [(config["downstreamDilution"] * concentration) / downstreamSample for concentration in downstream_concentrations]
+    # Scale PSD by dilution, concentration, and sample volume
+    upstream   = [(config["upstreamDilution"] * concentration) / upstreamVol for concentration in upstream_concentrations]
+    downstream = [(config["downstreamDilution"] * concentration) / downstreamVol for concentration in downstream_concentrations]
 
+    # Calculate Filtration Efficiency (FE) at each particle size
     FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
+
+    # Determine Most Penetrating Particle Size (MPPS) and associated FE
     for i in range(len(FE)):
         if FE[i] == min(FE): mpps = upstream_sizes[i]
     print(f'Minimum FE: {min(FE) * 100}% at {mpps} nm')
     
-    # Fit the upstream and downstream PSDs to a lognormal distribution
+    # Fit the upstream and downstream PSDs to a Hind's Frequency Function (Equation 4.41)
     ## Initial Guesses of Fit Parameters
-    upstreamGeoMean   = np.exp(np.mean(np.log(upstream_sizes)))
-    upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
-    downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
-    downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
+    upstreamGeoMean   = geometricMean(upstream_sizes)
+    upstreamGSD       = geometricStDev(upstream_sizes)
+    downstreamGeoMean = geometricMean(downstream_sizes)
+    downstreamGSD     = geometricStDev(downstream_sizes)
 
     print(f'Parameter Inital Guess:   Upstream Geometric Mean:   {upstreamGeoMean} \t Upstream GSD:   {upstreamGSD}')
     print(f'                          Downstream Geometric Mean: {downstreamGeoMean} \t Downstream GSD: {downstreamGSD}')
