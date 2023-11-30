@@ -1,0 +1,39 @@
+\documentclass[aps, prl, twocolumn, superscriptaddress, showpacs]{revtex4-1}
+
+\usepackage{graphicx}
+\usepackage{mathrsfs}
+\usepackage{verbatim}
+\usepackage{ulem}
+\usepackage{hyperref}
+\usepackage{gensymb}
+\usepackage{xcolor}
+
+\newcommand{\msstate}{Department of Physics and Astronomy, Mississippi State University, Mississippi State, MS 39762, USA}
+\newcommand{\icet}{Institute for Clean Energy Technology, Mississippi State University, Mississippi State, MS 39762, USA}
+
+\begin{document}
+\title{lasFE: Lognormal Fitting of Laser Aerosol Spectrometer data for Filtration Efficiency Analysis}
+
+\author{M.~S.~Wright}
+\email{wright@icet.msstate.edu}
+\affiliation{\icet}
+\affiliation{\msstate}
+
+\begin{abstract}
+	\verb|lasFE| facilitates the analysis of particle-size distribution (PSD) data collected using a TSI model 3340A Aerosol Spectrometer (LAS) to determine number-collection filtration efficiency (FE). The software is designed to iterativly fit aerosol particle-size data collected upstream and downstream of a filter to a lognormal distribution to characterize aerosol properties. While this code was written for purposes of \verb|PH 6433 (Computational Physics)|, software development continues for nuclear-grade HEPA filter qualification and performance evaluation. This early preview of \verb|lasFE| features data importation and preprocessing, nonlinear fitting, numerical integration, error analysis, and plotting functionalities. Ongoing development and issues are discussed.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+\section{Software Quality Assurance}
+\section{Statistical Methods}
+\section{Results}
+\section{Discussion}
+\section{Conclusion}
+
+
+\bibliographystyle{apsrev4-1}
+\bibliography{lasFE}
+
+\end{document}
