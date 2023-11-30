@@ -15,16 +15,21 @@ import matplotlib.pyplot as plt
 import yaml
 import numpy as np
 from scipy.integrate import trapz
+from scipy.optimize import curve_fit
 
-def lognormDistribution(dp, CMD, GSD, concentration):
+def lognormDistribution(dp, CMD, GSD):
     '''
     dp: particle diameter
     CMD: count median diameter
     GSD: geometric standard deviation
     '''
 
+    dp = np.maximum(dp, np.finfo(float).tiny)
+    CMD = max(CMD, np.finfo(float).tiny)
+    GSD = max(GSD, np.finfo(float).tiny)
+    
     # Particle-Size Frequency Function (Hinds, Equation 4.41)
-    return (concentration / (np.sqrt(2 * np.pi) * dp * np.log(GSD))) * np.exp(- (np.log(dp) - np.log(CMD))**2 / (2 * np.log(GSD)**2))
+    return (1 / (np.sqrt(2 * np.pi) * dp * np.log(GSD))) * np.exp(- (np.log(dp) - np.log(CMD))**2 / (2 * np.log(GSD)**2))
 
 def main():
     # Read YAML configuration file
@@ -121,31 +126,41 @@ def main():
     FE = [1 - (downstream[i] / upstream[i]) for i in range(len(upstream))]
     for i in range(len(FE)):
         if FE[i] == min(FE): mpps = upstream_sizes[i]
-    print(f'Most Penetrating Particle Size: {mpps} nm \t Associated Filtration Efficiency: {min(FE)*100}%')
-
+    
     # Fit the upstream and downstream PSDs to a lognormal distribution
+    ## Initial Guesses of Fit Parameters
     upstreamGeoMean   = np.exp(np.mean(np.log(upstream_sizes)))
     upstreamGSD       = np.exp(np.std(np.log(upstream_sizes)))
     downstreamGeoMean = np.exp(np.mean(np.log(downstream_sizes)))
     downstreamGSD     = np.exp(np.std(np.log(downstream_sizes)))
 
-    upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD, sum(upstream_concentrations)) for dp in upstream_sizes]
-    downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD, sum(downstream_concentrations)) for dp in downstream_sizes]
+    print(f'Upstream Geometric Mean:   {upstreamGeoMean} \t Upstream GSD:   {upstreamGSD}')
+    print(f'Downstream Geometric Mean: {downstreamGeoMean} \t Downstream GSD: {downstreamGSD}')
 
-    upstreamArea      = trapz(upstream_concentrations, upstream_sizes)
-    downstreamArea    = trapz(downstream_concentrations, downstream_sizes)
-    upstreamFitArea   = trapz(upstreamDistribution, upstream_sizes)
-    downstreamFitArea = trapz(downstreamDistribution, downstream_sizes)
+    upstreamGuess   = [upstreamGeoMean, upstreamGSD]
+    downstreamGuess = [downstreamGeoMean, downstreamGSD]
+    
+    # Iterative fit
+    popt_upstream, _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess)
+    fitted_upstream = lognormDistribution(upstream_sizes, *popt_upstream)
+    fitted_upstream = lognormDistribution(upstream_sizes, 280, 1.5906)
 
-    upstreamScale   = upstreamArea   / upstreamFitArea
-    downstreamScale = downstreamArea / downstreamFitArea
+    popt_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess)
+    fitted_downstream = lognormDistribution(downstream_sizes, *popt_downstream) 
+    fitted_downstream = lognormDistribution(downstream_sizes, 280, 1.5906)
 
-    scaledUpstream   = [point * upstreamScale for point in upstreamDistribution]
-    scaledDownstream = [point * downstreamScale for point in downstreamDistribution]
+    upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD) for dp in upstream_sizes]
+    downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD) for dp in downstream_sizes]
+
+    upstreamScale   = trapz(upstream_concentrations,   upstream_sizes)   / trapz(upstreamDistribution,   upstream_sizes)
+    downstreamScale = trapz(downstream_concentrations, downstream_sizes) / trapz(downstreamDistribution, downstream_sizes)
+
+    fitted_upstream   *= upstreamScale
+    fitted_downstream *= downstreamScale
 
     plt.figure("LAS Particle Size Distribution")
-    plt.plot(upstream_sizes, scaledUpstream, color='red', linestyle='dashed', label='Fitted Upstream PSD')
-    plt.plot(downstream_sizes, scaledDownstream, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
+    plt.plot(upstream_sizes, fitted_upstream, color='red', linestyle='dashed', label='Fitted Upstream PSD')
+    plt.plot(downstream_sizes, fitted_downstream, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
     for point, concentration in zip(upstreamPSD, upstream_concentrations):
@@ -163,10 +178,6 @@ def main():
     plt.xlabel('Particle Size (nm)')
     plt.ylabel('Concentration $(particles/cm^3)$')
     plt.xscale('log')
-    plt.show()
-
-    plt.figure("FE")
-    plt.scatter(upstream_sizes, FE, color='black', label='FE')
     plt.show()
 
 if __name__ == "__main__":
