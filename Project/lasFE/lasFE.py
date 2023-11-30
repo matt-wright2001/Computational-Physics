@@ -139,15 +139,23 @@ def main():
 
     upstreamGuess   = [upstreamGeoMean, upstreamGSD]
     downstreamGuess = [downstreamGeoMean, downstreamGSD]
+
+    goodFit = [295, 1.5906]
     
     # Iterative fit
     popt_upstream, _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess)
-    fitted_upstream = lognormDistribution(upstream_sizes, *popt_upstream)
-    fitted_upstream = lognormDistribution(upstream_sizes, 280, 1.5906)
+    #fitted_upstream = lognormDistribution(upstream_sizes, *popt_upstream)
+    #fitted_upstream = lognormDistribution(upstream_sizes, *upstreamGuess)
+    fitted_upstream = lognormDistribution(upstream_sizes, *goodFit)
 
     popt_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess)
-    fitted_downstream = lognormDistribution(downstream_sizes, *popt_downstream) 
-    fitted_downstream = lognormDistribution(downstream_sizes, 280, 1.5906)
+    #fitted_downstream = lognormDistribution(downstream_sizes, *popt_downstream) 
+    #fitted_downstream = lognormDistribution(downstream_sizes, *downstreamGuess)
+    fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
+
+    print(f"Optimized Parameters:   Upstream GM:   {popt_upstream[0]} \t Upstream GSD: {popt_upstream[1]}")
+    print(f"                        Downstream GM: {popt_downstream[0]} \t Downstream GSD: {popt_downstream[1]}")
+
 
     upstreamDistribution   = [lognormDistribution(dp, upstreamGeoMean, upstreamGSD) for dp in upstream_sizes]
     downstreamDistribution = [lognormDistribution(dp, downstreamGeoMean, downstreamGSD) for dp in downstream_sizes]
