@@ -1,6 +1,7 @@
-\documentclass[aps, prl, twocolumn, superscriptaddress, showpacs]{revtex4-1}
+\documentclass[aps, prl, twocolumn, showpacs]{revtex4-2}
 
 \usepackage{graphicx}
+\usepackage[margin=0.75in]{geometry}
 \usepackage{mathrsfs}
 \usepackage{verbatim}
 \usepackage{ulem}
@@ -12,7 +13,7 @@
 \newcommand{\icet}{Institute for Clean Energy Technology, Mississippi State University, Mississippi State, MS 39762, USA}
 
 \begin{document}
-\title{lasFE: Lognormal Fitting of Laser Aerosol Spectrometer data for Filtration Efficiency Analysis}
+\title{lasFE: Lognormal Fitting of Laser Aerosol Spectrometer data for Filtration-Efficiency Analysis}
 
 \author{M.~S.~Wright}
 \email{wright@icet.msstate.edu}
@@ -20,12 +21,16 @@
 \affiliation{\msstate}
 
 \begin{abstract}
-	\verb|lasFE| facilitates the analysis of particle-size distribution (PSD) data collected using a TSI model 3340A Aerosol Spectrometer (LAS) to determine number-collection filtration efficiency (FE). The software is designed to iterativly fit aerosol particle-size data collected upstream and downstream of a filter to a lognormal distribution to characterize aerosol properties. While this code was written for purposes of \verb|PH 6433 (Computational Physics)|, software development continues for nuclear-grade HEPA filter qualification and performance evaluation. This early preview of \verb|lasFE| features data importation and preprocessing, nonlinear fitting, numerical integration, error analysis, and plotting functionalities. Ongoing development and issues are discussed.
+	\verb|lasFE| facilitates the analysis of particle-size distribution (PSD) data collected using a TSI model 3340A Laser Aerosol Spectrometer (LAS) to determine number-collection filtration efficiency (FE) by comparing aerosol properties upstream and downstream of a filter. The software is designed to iterativly fit aerosol particle-size data to a lognormal distribution to determine the distribution's geometric mean and geometeric standard deviation. While this code was written for purposes of \verb|PH 6433 (Computational Physics)|, software development continues for nuclear-grade HEPA filter qualification or performance evaluation. This early preview of \verb|lasFE| features data importation and preprocessing, nonlinear fitting, numerical integration, error analysis, and plotting functionalities. Ongoing development and issues are discussed.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
+The LAS, an optical spectrometer using an intracavity laser to measure an aerosol sample's particulate size and number concentration, is commonly used to test nuclear-grade High Efficiency Particulate Air (HEPA) filters at the Institute for Clean Energy Technology (ICET).  \verb|lasFE| is software developed under ICET's \textit{American Society for Mechanical Engineers, Nuclear Quality Assurance (NQA-1)} program to perform a rigorous analysis of data produced with a TSI-manufactured LAS (model 3340A)\cite{tsi_las3340a}. For my \verb|PH 6433| final project, I present a prerelease of \verb|lasFE| highlighting a failed nonlinear-fit procedure and an actionable path forward controlled by \textit{ICET-QA-036, Software Control}\cite{qa-036}.
+
+
+
 \section{Software Quality Assurance}
 \section{Statistical Methods}
 \section{Results}

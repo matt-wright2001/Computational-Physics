@@ -146,7 +146,7 @@ def main():
         if FE[i] == min(FE): mpps = upstream_sizes[i]
     print(f'Minimum FE: {min(FE) * 100}% at {mpps} nm')
     
-    # Fit the upstream and downstream PSDs to a Hind's Frequency Function (Equation 4.41)
+    # Fit the upstream and downstream PSDs to Hind's Frequency Function (Equation 4.41)
     ## Initial Guesses of Fit Parameters
     upstreamGeoMean   = geometricMean(upstream_sizes)
     upstreamGSD       = geometricStDev(upstream_sizes)
@@ -163,20 +163,20 @@ def main():
     goodFit         = [290, 1.5906]
 
     # Dogbox method because bounded and large number data points relative to parameters
-    optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='dogbox', bounds=bounds)
-    optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='dogbox', bounds=bounds)
+    #optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='dogbox', bounds=bounds)
+    #optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='dogbox', bounds=bounds)
 
     # Levenberg-Marquardt excluding bounds
-    #optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='lm')
-    #optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='lm')
+    optimum_upstream,   _ = curve_fit(lognormDistribution, upstream_sizes, upstream_concentrations, p0=upstreamGuess, method='lm')
+    optimum_downstream, _ = curve_fit(lognormDistribution, downstream_sizes, downstream_concentrations, p0=downstreamGuess, method='lm')
 
-    #fitted_upstream = lognormDistribution(upstream_sizes, *optimum_upstream)
+    fitted_upstream = lognormDistribution(upstream_sizes, *optimum_upstream)
     #fitted_upstream = lognormDistribution(upstream_sizes, *upstreamGuess)
-    fitted_upstream = lognormDistribution(upstream_sizes, *goodFit)
+    #fitted_upstream = lognormDistribution(upstream_sizes, *goodFit)
 
-    #fitted_downstream = lognormDistribution(downstream_sizes, *optimum_downstream) 
+    fitted_downstream = lognormDistribution(downstream_sizes, *optimum_downstream) 
     #fitted_downstream = lognormDistribution(downstream_sizes, *downstreamGuess)
-    fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
+    #fitted_downstream = lognormDistribution(downstream_sizes, *goodFit)
 
     print(f"Optimized Parameters:     Upstream GM:   {optimum_upstream[0]} \t Upstream GSD:   {optimum_upstream[1]}")
     print(f"                          Downstream GM: {optimum_downstream[0]} \t Downstream GSD: {optimum_downstream[1]}")
@@ -192,7 +192,7 @@ def main():
 
     plt.figure("LAS Particle Size Distribution")
     plt.plot(upstream_sizes, fitted_upstream, color='red', linestyle='dashed', label='Fitted Upstream PSD')
-    plt.plot(downstream_sizes, fitted_downstream, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
+    #plt.plot(downstream_sizes, fitted_downstream, color='blue', linestyle='dashed', label='Fitted Downstream PSD')
 
     # Plot upstream and downstream PSD
     for point, concentration in zip(upstreamPSD, upstream_concentrations):
@@ -203,7 +203,7 @@ def main():
 
 
     # Format plot
-    plt.title('Particle Size Distribution')
+    plt.title('Particle Size Distribution \n Initial Guess Fit')
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(), loc='upper left')
